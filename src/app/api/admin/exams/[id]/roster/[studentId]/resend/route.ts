@@ -61,5 +61,5 @@ export async function POST(
     .update({ last_email_status: emailStatus, last_email_at: new Date().toISOString() })
     .eq("id", studentId);
 
-  return NextResponse.json({ ok: true, emailStatus });
+  return NextResponse.json({ ok: true, emailStatus, password, email: student.email });
 }

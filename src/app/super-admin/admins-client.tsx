@@ -97,14 +97,29 @@ export function AdminsClient() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={creating}>
-              {creating ? "Creating..." : "Create admin & email credentials"}
+              {creating ? "Creating..." : "Create admin"}
             </Button>
           </form>
           {newCredential && (
             <div className="rounded-md border bg-muted/40 p-3 text-sm">
-              <p className="font-medium">Credentials (shown once)</p>
-              <p>Email: {newCredential.email}</p>
-              <p>Password: {newCredential.password}</p>
+              <p className="font-medium">Credentials — visible once</p>
+              <p className="text-muted-foreground">
+                The app tries to email these automatically, but that&apos;s optional — copy them
+                now and send yourself if needed.
+              </p>
+              <p className="mt-2">Email: {newCredential.email}</p>
+              <p className="font-mono">Password: {newCredential.password}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${newCredential.email}\t${newCredential.password}`);
+                  toast.success("Copied");
+                }}
+              >
+                Copy
+              </Button>
             </div>
           )}
         </CardContent>

@@ -77,7 +77,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   }
 
   const adminClient = createAdminClient();
-  const created: { name: string; email: string; roll_no: string }[] = [];
+  const created: { name: string; email: string; roll_no: string; password: string; emailStatus: "sent" | "failed" }[] = [];
   const errors: { row: RosterRow; error: string }[] = [];
 
   // Build an email -> auth user id map once (paginated), instead of listing
@@ -162,8 +162,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .eq("exam_id", id)
       .eq("email", row.email);
 
-    created.push(row);
+    // Passwords are never stored anywhere in plaintext — this response is the
+    // only place they ever appear. Emailing is best-effort (works if Resend
+    // is configured); either way the admin can see/export every password
+    // here and send it manually, so Resend is optional, not required.
+    created.push({ ...row, password, emailStatus });
   }
 
-  return NextResponse.json({ createdCount: created.length, errors });
+  return NextResponse.json({ created, errors });
 }

@@ -49,9 +49,11 @@ Copy `.env.example` to `.env.local` and fill in:
 
 - `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` —
   from Supabase → Project Settings → API.
-- `RESEND_API_KEY` / `EMAIL_FROM` — from [resend.com](https://resend.com). **You must verify a
-  sending domain in Resend before credential emails will reliably reach inboxes** — the
-  shared `onboarding@resend.dev` sender is rate-limited and fine for local testing only.
+- `RESEND_API_KEY` / `EMAIL_FROM` — **optional.** From [resend.com](https://resend.com), with a
+  verified sending domain, if you want credential emails sent automatically. If you skip this
+  entirely, account creation still works fine — every generated password is shown directly in
+  the Admin/Super Admin UI (export to Excel or copy-paste), so you can email or WhatsApp
+  credentials yourself instead of configuring an email provider at all.
 - `SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` / `SUPER_ADMIN_NAME` — used once by the seed
   script below.
 - `APP_SECRET` — any random 32+ byte string.
@@ -76,20 +78,20 @@ Sign in at `/login` with the Super Admin credentials to create your first Admin.
 
 - **Supabase** (free tier is enough to start) — Postgres, Auth, and Storage all come from
   one project.
-- **Resend** (or swap `src/lib/email.ts` for Nodemailer/SMTP) — needed for admin-credential
-  and student-credential emails. Without it, accounts are still created but the emails
-  silently fail (checked in the roster/admin UI's delivery-status column).
+- **Resend** — optional. Without it, accounts are still created normally and every generated
+  password appears in the Admin/Super Admin UI (with an Excel export and a copy-to-clipboard
+  button) so you can send credentials yourself by any means you like. Configure Resend later
+  if/when you want that step automated.
 
 ## What to provide before this goes live
 
 1. **A Supabase project** — URL + anon key + service role key (Project Settings → API).
-2. **A Resend account with a verified sending domain** (or SMTP credentials if you'd rather
-   swap in Nodemailer) — without domain verification, credential emails either don't send or
-   land in spam.
-3. **Real Super Admin credentials** — the email/password you want bootstrapped as the
+2. **Real Super Admin credentials** — the email/password you want bootstrapped as the
    platform owner (`SUPER_ADMIN_EMAIL` / `SUPER_ADMIN_PASSWORD` / `SUPER_ADMIN_NAME`).
-4. **The production URL** once you know it (Vercel gives you one, or your custom domain) —
+3. **The production URL** once you know it (Vercel gives you one, or your custom domain) —
    goes into `NEXT_PUBLIC_APP_URL` and into Supabase's Auth redirect allow-list (step below).
+4. *(Optional)* **A Resend account with a verified sending domain**, only if you want
+   credential emails sent automatically instead of exporting/copying them from the UI yourself.
 5. A decision on the two things this build is explicit about *not* solving: whether you need a
    true lockdown browser for high-stakes runs, and whether the in-memory rate limiter (fine for
    a single small deployment) needs upgrading to Upstash/Vercel KV for your expected traffic.
@@ -102,12 +104,13 @@ There's no automated test suite yet (not asked for) — here's the manual pass t
 Supabase/Resend credentials are in place:
 
 1. `npm run seed:super-admin`, then sign in as Super Admin at `/login`.
-2. Create an Admin from the Super Admin dashboard — confirm the credential email arrives, sign
-   in as that Admin.
+2. Create an Admin from the Super Admin dashboard — the credentials appear directly on screen
+   (copy them, or check your inbox if Resend is configured), sign in as that Admin.
 3. As Admin: create an exam, upload a real question-paper PDF (+ answer key), verify the parsed
    draft looks reasonable, deliberately fix a wrong answer/option in the review step, save.
 4. Import a small Excel roster (3–5 rows, columns `name`/`email`/`roll_no`) — confirm accounts
-   are created and invite emails arrive; try "Resend" on one row.
+   are created and every password shows in the "new passwords" table with an Excel export;
+   try "Reset password" on one row and confirm a fresh password appears the same way.
 5. As a Student: sign in with an issued password, confirm the forced password-change screen
    appears and can't be skipped, then land on the dashboard.
 6. Run the pre-exam check (camera permission, fullscreen), start the exam: confirm autosave
@@ -133,8 +136,9 @@ Supabase/Resend credentials are in place:
 3. Run `npm run seed:super-admin` once **locally** against the production Supabase project
    (point `.env.local` at it temporarily) — there's no seed button in the UI by design, since
    it's a one-time bootstrap.
-4. Re-check Resend's domain verification (SPF/DKIM records) using the same domain you put in
-   `EMAIL_FROM` — this is the #1 reason credential emails don't arrive in production.
+4. If you configured Resend, re-check its domain verification (SPF/DKIM records) against the
+   domain in `EMAIL_FROM` — the #1 reason credential emails don't arrive. If you didn't
+   configure it, that's fine — every password still shows up in the UI to export/copy.
 5. Walk through the testing checklist above once against the deployed URL before handing it to
    real students.
 
