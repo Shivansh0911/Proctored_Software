@@ -4,6 +4,7 @@
  * Requires SUPABASE_SERVICE_ROLE_KEY, SUPER_ADMIN_EMAIL, SUPER_ADMIN_PASSWORD,
  * SUPER_ADMIN_NAME in your environment (see .env.example).
  */
+import "../src/lib/websocket-polyfill";
 import { createClient } from "@supabase/supabase-js";
 import * as dotenv from "dotenv";
 

@@ -1,4 +1,5 @@
 import "server-only";
+import "@/lib/websocket-polyfill";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
 // Service-role client — bypasses RLS entirely. Server-only: never import this
